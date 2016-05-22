@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html ng-app="indicatorModule">
+<head>
+    <meta charset="UTF-8">
+    <title>Показатели</title>
+    <script src="https://code.angularjs.org/1.5.5/angular.min.js"></script>
+    <script src="https://code.angularjs.org/1.5.5/angular-route.min.js"></script>
+    <script>
+        var indicatorModule = angular.module('indicatorModule', ['ngRoute']);
+        indicatorModule.config(function ($routeProvider) {
+            $routeProvider.when('/', {
+                templateUrl: 'indicatorList.html',
+                controller: 'indicatorListController'
+            }).when('/:indicatorId', {
+                templateUrl: 'indicatorEdit.html',
+                controller: 'indicatorEditController'
+            })
+        });
+        indicatorModule.factory('indicatorFactory', function ($http) {
+            return {
+                getAll: function (callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/indicators'
+                    }).then(callback);
+                },
+                getById: function (id, callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/indicators/' + id
+                    }).then(callback);
+                },
+                save: function (indicator) {
+                    $http({
+                        method: 'POST',
+                        url: 'http://localhost:8080/indicators',
+                        headers: { 'Content-Type': 'application/json' },
+                        data: indicator
+                    });
+                },
+                update: function (indicator) {
+                    $http({
+                        method: 'PUT',
+                        url: 'http://localhost:8080/indicators',
+                        headers: { 'Content-Type': 'application/json' },
+                        data: indicator
+                    });
+                },
+                delete: function (id, callback) {
+                    $http({
+                        method: 'DELETE',
+                        url: 'http://localhost:8080/indicators/' + id
+                    }).then(callback);
+                }
+            };
+        });
+        indicatorModule.controller('indicatorListController', function ($scope, $location, indicatorFactory) {
+            indicatorFactory.getAll(function (indicators) {
+                $scope.indicators = indicators.data;
+            });
+            $scope.selectedRow = null;
+            $scope.rowTableClick = function (selectedRow) {
+                $scope.selectedRow = selectedRow;
+            };
+            $scope.rowTableDoubleClick = function (path) {
+                $location.path(path);
+            };
+            $scope.buttonCreateClick = function () {
+                $location.path("0");
+            };
+            $scope.buttonDeleteClick = function () {
+                if ($scope.selectedRow != null)
+                indicatorFactory.delete($scope.indicators[$scope.selectedRow].id, function () {
+                    $scope.indicators.splice($scope.selectedRow, 1);
+                    $scope.selectedRow = null;
+                })
+            }
+        });
+        indicatorModule.controller('indicatorEditController', function ($scope, $routeParams, $location, indicatorFactory) {
+            indicatorFactory.getById($routeParams.indicatorId, function (indicator) {
+                $scope.indicator = indicator.data;
+            });
+            $scope.submit = function () {
+                var a = JSON.stringify($scope.indicator);
+                if (angular.isUndefined($scope.indicator.id)) {
+                    indicatorFactory.save(a);
+                } else {
+                    indicatorFactory.update(a);
+                }
+            };
+            $scope.buttonBackClick = function () {
+                $location.path("");
+            };
+        });
+    </script>
+</head>
+<body>
+<div ng-view></div>
+</body>
+</html>

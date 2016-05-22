@@ -8,4 +8,7 @@ import ru.kolvah.entity.Equipment;
  */
 
 public class EquipmentDaoImpl extends BaseDaoImpl<Equipment> implements EquipmentDao {
+    public EquipmentDaoImpl() {
+        super(Equipment.class);
+    }
 }

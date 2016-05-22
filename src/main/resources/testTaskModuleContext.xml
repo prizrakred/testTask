@@ -20,7 +20,7 @@
     </bean>
 
     <!--SesseionFactory -->
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="annotatedClasses">
             <list>
@@ -36,7 +36,7 @@
                 <prop key="hibernate.show_sql">false</prop>
                 <prop key="hibernate.format_sql">true</prop>
                 <prop key="hibernate.max_fetch_depth">2</prop>
-                <!--<prop key="hibernate.generate_statistics">true</prop>-->
+                <prop key="hibernate.generate_statistics">true</prop>
                 <prop key="hibernate.cache.use_query_cache">true</prop>
                 <prop key="hibernate.cache.use_second_level_cache">true</prop>
                 <prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory</prop>
@@ -47,16 +47,22 @@
         <property name="packagesToScan" value="ru.kolvah.entity"/>
     </bean>
 
-    <bean name="equipmentDaoImpl" class="ru.kolvah.dao.daoimpl.EquipmentDaoImpl"/>
-    <bean name="indicatorDaoImpl" class="ru.kolvah.dao.daoimpl.IndicatorDaoImpl"/>
-    <bean name="measurementDaoImpl" class="ru.kolvah.dao.daoimpl.MeasurementDaoImpl"/>
-    <bean name="action" class="ru.kolvah.Action"/>
+    <bean name="equipmentDao" class="ru.kolvah.dao.daoimpl.EquipmentDaoImpl"/>
+    <bean name="indicatorDao" class="ru.kolvah.dao.daoimpl.IndicatorDaoImpl"/>
+    <bean name="measurementDao" class="ru.kolvah.dao.daoimpl.MeasurementDaoImpl"/>
+    <bean name="equipmentService" class="ru.kolvah.service.serviceImpl.EquipmentServiceImpl"/>
+    <bean name="indicatorService" class="ru.kolvah.service.serviceImpl.IndicatorServiceImpl"/>
+    <bean name="measurementService" class="ru.kolvah.service.serviceImpl.MeasurementServiceImpl"/>
 
 
-    <!-- Transaction Manager -->
+     <!--Transaction Manager-->
     <!--<bean id="txManager"-->
           <!--class="org.springframework.orm.hibernate5.HibernateTransactionManager">-->
         <!--<property name="sessionFactory" ref="sessionFactory" />-->
     <!--</bean>-->
     <!--<tx:annotation-driven transaction-manager="txManager" />-->
+
+    <!--<bean id="openSessionInterceptor" class="org.springframework.orm.hibernate5.support.OpenSessionInterceptor">-->
+        <!--<property name="sessionFactory" ref="sessionFactory"/>-->
+    <!--</bean>-->
 </beans>

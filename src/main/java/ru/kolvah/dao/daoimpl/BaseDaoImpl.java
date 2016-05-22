@@ -3,56 +3,95 @@ package ru.kolvah.dao.daoimpl;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hibernate.Transaction;
+import ru.kolvah.SpringContext;
 import ru.kolvah.dao.BaseDao;
 import ru.kolvah.entity.BaseEntity;
 
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Constructor;
 import java.util.List;
 
 /**
  * Created by dmitriik on 18.05.2016.
  */
-public abstract class BaseDaoImpl<T extends BaseEntity> implements BaseDao<T> {
+public class BaseDaoImpl<E extends BaseEntity> implements BaseDao<E> {
 
-    private Class<T> type;
+    private Class<E> entityClass;
 
-    @Autowired
+//    @Autowired
     private SessionFactory sessionFactory;
 
-    public BaseDaoImpl() {
-        type = (Class<T>) (((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
+
+    public BaseDaoImpl(Class<E> entityClass) {
+        init(entityClass);
     }
 
-    public void save(T entity) {
+    protected final void init(Class<E> entityClass) {
+        this.entityClass = entityClass;
+    }
+
+    private Session session;
+    private Transaction transaction;
+
+
+    public void insert(E entity) {
         getSession().save(entity);
     }
 
-    public void update(T entity) {
+    public void update(E entity) {
         getSession().update(entity);
+        try {
+            Constructor constructor = entity.getClass().getConstructor();
+            constructor.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public void delete(T entity) {
+    public void delete(E entity) {
         getSession().delete(entity);
     }
 
-    public List<T> getAll() {
+    public void delete(Long id) {
+        getSession().delete(getById(id));
+    }
+
+    public List<E> getAll() {
         return createBaseCriteria().list();
     }
 
-    public T getById(Long id) {
-        return getSession().load(type, id);
+    public E getById(Long id) {
+        return getSession().get(entityClass, id);
     }
 
+    public SessionFactory getSessionFactory() {
+        if (sessionFactory == null) {
+            sessionFactory = (SessionFactory)SpringContext.getContext().getBean("sessionFactory");
+        }
+        return sessionFactory;
+    }
+
+    public void beginWork() {
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        session = getSessionFactory().openSession();
+        transaction = session.beginTransaction();
+    }
+
+    public void endWork() {
+        transaction.commit();
+        session.close();
+    }
+
+
+
+
     public Criteria createBaseCriteria() {
-        return getSession().createCriteria(type);
+        return session.createCriteria(entityClass);
     }
 
     protected Session getSession() {
-        return sessionFactory.getCurrentSession();
-    }
-
-    public Class<T> getType() {
-        return type;
+        return session;
     }
 }

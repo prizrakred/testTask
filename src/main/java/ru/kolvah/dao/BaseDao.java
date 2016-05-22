@@ -1,6 +1,7 @@
 package ru.kolvah.dao;
 
 import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
 import ru.kolvah.entity.BaseEntity;
 
 import java.util.List;
@@ -8,17 +9,25 @@ import java.util.List;
 /**
  * Created by dmitriik on 18.05.2016.
  */
-public interface BaseDao<T extends BaseEntity> {
+public interface BaseDao<E extends BaseEntity> {
 
-    void save(T entity);
+    void insert(E entity);
 
-    void update(T entity);
+    void update(E entity);
 
-    void delete(T entity);
+    void delete(E entity);
 
-    List getAll();
+    void delete(Long id);
 
-    T getById(Long id);
+    List<E> getAll();
+
+    E getById(Long id);
 
     Criteria createBaseCriteria();
+
+    SessionFactory getSessionFactory();
+
+    void beginWork();
+
+    void endWork();
 }

@@ -7,4 +7,7 @@ import ru.kolvah.entity.Measurement;
  * Created by dmitriik on 18.05.2016.
  */
 public class MeasurementDaoImpl extends BaseDaoImpl<Measurement> implements MeasurementDao {
+    public MeasurementDaoImpl() {
+        super(Measurement.class);
+    }
 }
