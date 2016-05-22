@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Измерения</title>
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+</head>
+<body>
+<input type="button" value="Создать" ng-click="buttonCreateClick()">
+<input type="button" value="Удалить" ng-click="buttonDeleteClick()">
+<input type="button" value="Назад" ng-click="buttonBackClick()">
+<table class="table table-bordered">
+    <tr>
+        <th>id</th>
+        <th>Дата</th>
+        <th>Значение</th>
+        <th>Оборудование</th>
+        <th>Показатель</th>
+    </tr>
+    <tr ng-repeat="measurement in measurements" ng-class="{'active': $index == selectedRow}"
+        ng-click="rowTableClick($index)" ng-dblclick="rowTableDoubleClick(measurement.id)">
+        <td>{{measurement.id}}</td>
+        <td>{{measurement.date}}</td>
+        <td>{{measurement.value}}</td>
+        <td>{{measurement.equipment}}</td>
+        <td>{{measurement.indicator.name}}</td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html ng-app="testTask">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://code.angularjs.org/1.5.5/angular.min.js"></script>
+    <script src="https://code.angularjs.org/1.5.5/angular-route.min.js"></script>
+    <script src="moment.js"></script>
+    <script>
+        var testTask = angular.module('testTask', ['ngRoute']);
+        testTask.config(function ($routeProvider) {
+            $routeProvider.when('/', {
+                templateUrl: 'menu.html'
+//                controller: 'menuController'
+            }).when('/indicator', {
+                templateUrl: 'indicatorList.html',
+                controller: 'indicatorListController'
+            }).when('/indicator/:indicatorId', {
+                templateUrl: 'indicatorEdit.html',
+                controller: 'indicatorEditController'
+            }).when('/measurement', {
+                templateUrl: 'measurementList.html',
+                controller: 'measurementListController'
+            }).when('/measurement/:measurementId', {
+                templateUrl: 'measurementEdit.html',
+                controller: 'measurementEditController'
+            })
+        });
+        testTask.run(function ($rootScope, $location, routeHistory) {
+            $rootScope.$on('$routeChangeSuccess', function () {
+                routeHistory.history.push($location.$$path);
+            });
+        });
+        testTask.factory('routeHistory', function ($location) {
+            var routeHistory = {};
+            routeHistory.history = [];
+            routeHistory.back = function (selectedId) {
+                var prevUrl = routeHistory.history.length > 1 ? routeHistory.history.splice(-2)[0] : "/";
+                $location.path(prevUrl).search({selectedId: selectedId});
+            };
+            return routeHistory
+        });
+        testTask.factory('indicatorFactory', function ($http) {
+            return {
+                getAll: function (callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/indicators'
+                    }).then(callback);
+                },
+                getById: function (id, callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/indicators/' + id
+                    }).then(callback);
+                },
+                save: function (indicator) {
+                    $http({
+                        method: 'POST',
+                        url: 'http://localhost:8080/indicators',
+                        headers: {'Content-Type': 'application/json'},
+                        data: indicator
+                    });
+                },
+                update: function (indicator) {
+                    $http({
+                        method: 'PUT',
+                        url: 'http://localhost:8080/indicators',
+                        headers: {'Content-Type': 'application/json'},
+                        data: indicator
+                    });
+                },
+                delete: function (id, callback) {
+                    $http({
+                        method: 'DELETE',
+                        url: 'http://localhost:8080/indicators/' + id
+                    }).then(callback);
+                }
+            };
+        });
+        testTask.controller('indicatorListController', function ($scope, $location, indicatorFactory, routeHistory) {
+            indicatorFactory.getAll(function (indicators) {
+                $scope.indicators = indicators.data;
+            });
+            $scope.selectedRow = null;
+            $scope.rowTableClick = function (selectedRow) {
+                $scope.selectedRow = selectedRow;
+            };
+            $scope.rowTableDoubleClick = function (id) {
+                var searchParams = $location.search();
+                if (angular.isDefined(searchParams.forSelect) && searchParams.forSelect) {
+                    routeHistory.back(id);
+                } else {
+                    $location.path("/indicator/" + id);
+                }
+            };
+            $scope.buttonCreateClick = function () {
+                $location.path("/indicator/0");
+            };
+            $scope.buttonDeleteClick = function () {
+                if ($scope.selectedRow != null)
+                    indicatorFactory.delete($scope.indicators[$scope.selectedRow].id, function () {
+                        $scope.indicators.splice($scope.selectedRow, 1);
+                        $scope.selectedRow = null;
+                    })
+            };
+            $scope.buttonBackClick = function () {
+                $location.path("");
+            };
+        });
+        testTask.controller('indicatorEditController', function ($scope, $routeParams, $location, indicatorFactory) {
+            indicatorFactory.getById($routeParams.indicatorId, function (indicator) {
+                $scope.indicator = indicator.data;
+            });
+            $scope.submit = function () {
+                var a = JSON.stringify($scope.indicator);
+                if (angular.isUndefined($scope.indicator.id)) {
+                    indicatorFactory.save(a);
+                } else {
+                    indicatorFactory.update(a);
+                }
+            };
+            $scope.buttonBackClick = function () {
+                $location.path("/indicator");
+            };
+        });
+
+
+
+
+        testTask.factory('measurementFactory', function ($http) {
+            return {
+                getAll: function (callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/measurements'
+                    }).then(callback);
+                },
+                getById: function (id, callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/measurements/' + id
+                    }).then(callback);
+                },
+                save: function (measurement) {
+                    $http({
+                        method: 'POST',
+                        url: 'http://localhost:8080/measurements',
+                        headers: {'Content-Type': 'application/json'},
+                        data: measurement
+                    });
+                },
+                update: function (measurement) {
+                    $http({
+                        method: 'PUT',
+                        url: 'http://localhost:8080/measurements',
+                        headers: {'Content-Type': 'application/json'},
+                        data: measurement
+                    });
+                },
+                delete: function (id, callback) {
+                    $http({
+                        method: 'DELETE',
+                        url: 'http://localhost:8080/measurements/' + id
+                    }).then(callback);
+                }
+            };
+        });
+        testTask.controller('measurementListController', function ($scope, $location, measurementFactory) {
+            measurementFactory.getAll(function (measurements) {
+                var data = measurements.data;
+                data.forEach(function (measurement, index, measurements) {
+                    measurement.date = moment(measurement.date).format("YYYY-MM-DDTHH:mm:ss");
+                });
+                $scope.measurements = data;
+            });
+            $scope.selectedRow = null;
+            $scope.rowTableClick = function (selectedRow) {
+                $scope.selectedRow = selectedRow;
+            };
+            $scope.rowTableDoubleClick = function (id) {
+                $location.path("/measurement/" + id);
+            };
+            $scope.buttonCreateClick = function () {
+                $location.path("/measurement/0");
+            };
+            $scope.buttonDeleteClick = function () {
+                if ($scope.selectedRow != null)
+                    measurementFactory.delete($scope.measurements[$scope.selectedRow].id, function () {
+                        $scope.measurements.splice($scope.selectedRow, 1);
+                        $scope.selectedRow = null;
+                    })
+            };
+            $scope.buttonBackClick = function () {
+                $location.path("");
+            };
+        });
+        testTask.controller('measurementEditController', function ($scope, $routeParams, $location, measurementFactory, indicatorFactory) {
+            measurementFactory.getById($routeParams.measurementId, function (measurement) {
+                var data = measurement.data;
+                data.date = moment(data.date).format("YYYY-MM-DDTHH:mm:ss");
+                var searchParams = $location.search();
+                if (angular.isDefined(searchParams.selectedId)) {
+                    var selectedId = searchParams.selectedId;
+//                    $location.search('selectedId', null);
+                    indicatorFactory.getById(selectedId, function (indicator) {
+                        data.indicator = indicator.data
+
+                    });
+                }
+                $scope.measurement = data;
+            });
+            $scope.submit = function () {
+                if ($scope.measurement.date == "Invalid date") {
+                    $scope.measurement.date = null;
+                }
+                var a = JSON.stringify($scope.measurement);
+                if (angular.isUndefined($scope.measurement.id)) {
+                    measurementFactory.save(a);
+                } else {
+                    measurementFactory.update(a);
+                }
+            };
+            $scope.buttonSelectIndicatorClick = function () {
+                $location.path("/indicator").search({forSelect: true});
+            };
+            $scope.buttonBackClick = function () {
+                $location.path("/measurement");
+            };
+        });
+
+
+
+
+        testTask.factory('equipmentFactory', function ($http) {
+            return {
+                getAll: function (callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/equipments'
+                    }).then(callback);
+                },
+                getById: function (id, callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/equipments/' + id
+                    }).then(callback);
+                },
+                save: function (equipment) {
+                    $http({
+                        method: 'POST',
+                        url: 'http://localhost:8080/equipments',
+                        headers: {'Content-Type': 'application/json'},
+                        data: equipment
+                    });
+                },
+                update: function (equipment) {
+                    $http({
+                        method: 'PUT',
+                        url: 'http://localhost:8080/equipments',
+                        headers: {'Content-Type': 'application/json'},
+                        data: equipment
+                    });
+                },
+                delete: function (id, callback) {
+                    $http({
+                        method: 'DELETE',
+                        url: 'http://localhost:8080/measurements/' + id
+                    }).then(callback);
+                }
+            };
+        });
+        testTask.controller('equipmentListController', function ($scope, $location, equipmentFactory) {
+            equipmentFactory.getAll(function (equipments) {
+                var data = equipments.data;
+                $scope.equipments = data;
+            });
+            $scope.selectedRow = null;
+            $scope.rowTableClick = function (selectedRow) {
+                $scope.selectedRow = selectedRow;
+            };
+            $scope.rowTableDoubleClick = function (id) {
+                $location.path("/equipment/" + id);
+            };
+            $scope.buttonCreateClick = function () {
+                $location.path("/equipment/0");
+            };
+            $scope.buttonDeleteClick = function () {
+                if ($scope.selectedRow != null)
+                    equipmentFactory.delete($scope.equipments[$scope.selectedRow].id, function () {
+                        $scope.equipments.splice($scope.selectedRow, 1);
+                        $scope.selectedRow = null;
+                    })
+            };
+            $scope.buttonBackClick = function () {
+                $location.path("");
+            };
+        });
+        testTask.controller('equipmentEditController', function ($scope, $routeParams, $location, equipmentFactory) {
+            equipmentFactory.getById($routeParams.equipmentId, function (equipment) {
+                var data = equipment.data;
+                $scope.equipment = data;
+            });
+            $scope.submit = function () {
+                var a = JSON.stringify($scope.measurement);
+                if (angular.isUndefined($scope.equipment.id)) {
+                    equipmentFactory.save(a);
+                } else {
+                    equipmentFactory.update(a);
+                }
+            };
+            $scope.buttonBackClick = function () {
+                $location.path("/measurement");
+            };
+        });
+    </script>
+</head>
+<body>
+<div ng-view></div>
+</body>
+</html>

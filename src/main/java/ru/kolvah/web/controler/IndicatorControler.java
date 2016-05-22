@@ -21,14 +21,20 @@ public class IndicatorControler {
 
     @RequestMapping(value = "/indicators", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Indicator>> getAll() {
+        indicatorService.beginWork();
         List<Indicator> indicators = indicatorService.getAll();
-        return new ResponseEntity<List<Indicator>>(indicators, HttpStatus.OK);
+        ResponseEntity<List<Indicator>> responseEntity = new ResponseEntity<List<Indicator>>(indicators, HttpStatus.OK);
+        indicatorService.endWork();
+        return responseEntity;
     }
 
     @RequestMapping(value = "/indicators/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Indicator> getById(@PathVariable("id") Long id) {
+        indicatorService.beginWork();
         Indicator indicator = indicatorService.getById(id);
-        return new ResponseEntity<Indicator>(indicator, HttpStatus.OK);
+        ResponseEntity<Indicator> responseEntity = new ResponseEntity<Indicator>(indicator, HttpStatus.OK);
+        indicatorService.endWork();
+        return responseEntity;
     }
 
     @RequestMapping(value = "/indicators", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,

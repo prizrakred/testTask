@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html ng-app="measurementModule">
+<head>
+    <meta charset="UTF-8">
+    <title>Измерения</title>
+    <script src="https://code.angularjs.org/1.5.5/angular.min.js"></script>
+    <script src="https://code.angularjs.org/1.5.5/angular-route.min.js"></script>
+    <script>
+        var measurementModule = angular.module('measurementModule', ['ngRoute']);
+        measurementModule.config(function ($routeProvider) {
+            $routeProvider.when('/', {
+                templateUrl: 'measurementList.html',
+                controller: 'measurementListController'
+            }).when('/:measurementId', {
+                templateUrl: 'measurementEdit.html',
+                controller: 'measurementEditController'
+            })
+        });
+        measurementModule.factory('measurementFactory', function ($http) {
+            return {
+                getAll: function (callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/measurements'
+                    }).then(callback);
+                },
+                getById: function (id, callback) {
+                    $http({
+                        method: 'GET',
+                        url: 'http://localhost:8080/measurements/' + id
+                    }).then(callback);
+                },
+                save: function (measurement) {
+                    $http({
+                        method: 'POST',
+                        url: 'http://localhost:8080/measurements',
+                        headers: { 'Content-Type': 'application/json' },
+                        data: measurement
+                    });
+                },
+                update: function (measurement) {
+                    $http({
+                        method: 'PUT',
+                        url: 'http://localhost:8080/measurements',
+                        headers: { 'Content-Type': 'application/json' },
+                        data: measurement
+                    });
+                },
+                delete: function (id, callback) {
+                    $http({
+                        method: 'DELETE',
+                        url: 'http://localhost:8080/measurements/' + id
+                    }).then(callback);
+                }
+            };
+        });
+        measurementModule.controller('measurementListController', function ($scope, $location, measurementFactory) {
+            measurementFactory.getAll(function (measurements) {
+                var data = measurements.data;
+                data.forEach(function (measurement, index, measurements) {
+                   measurement.date = moment(measurement.date).format("YYYY-MM-DDTHH:mm:ss");
+                });
+                $scope.measurements = data;
+            });
+            $scope.selectedRow = null;
+            $scope.rowTableClick = function (selectedRow) {
+                $scope.selectedRow = selectedRow;
+            };
+            $scope.rowTableDoubleClick = function (path) {
+                $location.path(path);
+            };
+            $scope.buttonCreateClick = function () {
+                $location.path("0");
+            };
+            $scope.buttonDeleteClick = function () {
+                if ($scope.selectedRow != null)
+                    measurementFactory.delete($scope.measurements[$scope.selectedRow].id, function () {
+                        $scope.measurements.splice($scope.selectedRow, 1);
+                        $scope.selectedRow = null;
+                    })
+            }
+        });
+        measurementModule.controller('measurementEditController', function ($scope, $routeParams, $location, measurementFactory) {
+            measurementFactory.getById($routeParams.measurementId, function (measurement) {
+                var data = measurement.data;
+                data.date = moment(data.date).format("YYYY-MM-DDTHH:mm:ss");
+                $scope.measurement = data;
+            });
+            $scope.submit = function () {
+                var a = JSON.stringify($scope.measurement);
+                if (angular.isUndefined($scope.measurement.id)) {
+                    measurementFactory.save(a);
+                } else {
+                    measurementFactory.update(a);
+                }
+            };
+            $scope.buttonBackClick = function () {
+                $location.path("");
+            };
+        });
+    </script>
+</head>
+<body>
+<div ng-view></div>
+</body>
+</html>

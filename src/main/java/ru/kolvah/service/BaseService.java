@@ -21,4 +21,7 @@ public interface BaseService<E extends BaseEntity> {
 
     E getById(Long id);
 
+    void beginWork();
+
+    void endWork();
 }

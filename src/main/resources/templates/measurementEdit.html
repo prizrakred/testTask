@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Измерение</title>
+</head>
+<body>
+<form ng-submit="submit()">
+    <!--Дата: <input type="datetime-local" ng-model="measurement.date">-->
+    Дата: <input type="text" ng-model="measurement.date">
+    <p></p>
+    Значение: <input type="number" ng-model="measurement.value">
+    <p></p>
+    Оборудование: <input type="text" ng-model="measurement.equipment">
+    <p></p>
+    Показатель: <input type="text" ng-model="measurement.indicator.name">
+    <input type="button" value="Выбрать" ng-click="buttonSelectIndicatorClick()">
+    <p></p>
+    <input type="submit" value="Сохранить">
+    <input type="button" value="Назад" ng-click="buttonBackClick()">
+</form>
+</body>
+</html>

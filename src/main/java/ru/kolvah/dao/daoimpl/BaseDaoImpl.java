@@ -72,18 +72,18 @@ public class BaseDaoImpl<E extends BaseEntity> implements BaseDao<E> {
     }
 
     public void beginWork() {
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        session = getSessionFactory().openSession();
+        if (session != null && session.isOpen()) {
+            session.close();
+        }
+        if (session == null || !session.isOpen()) {
+            session = getSessionFactory().openSession();
+        }
         transaction = session.beginTransaction();
     }
 
     public void endWork() {
         transaction.commit();
-        session.close();
     }
-
 
 
 

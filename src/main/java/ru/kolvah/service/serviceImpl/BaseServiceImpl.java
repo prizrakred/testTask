@@ -48,17 +48,19 @@ public class BaseServiceImpl<E extends BaseEntity> implements BaseService<E> {
 
 //    @Transactional
     public List<E> getAll() {
-        baseDao.beginWork();
-        List<E> list = baseDao.getAll();
-        baseDao.endWork();
-        return list;
+        return baseDao.getAll();
     }
 
 //    @Transactional
     public E getById(Long id) {
+        return baseDao.getById(id);
+    }
+
+    public void beginWork() {
         baseDao.beginWork();
-        E e = baseDao.getById(id);
+    }
+
+    public void endWork() {
         baseDao.endWork();
-        return e;
     }
 }
