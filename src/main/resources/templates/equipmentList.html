@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Оборудование</title>
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+</head>
+<body>
+<input type="button" value="Создать" ng-click="buttonCreateClick()">
+<input type="button" value="Удалить" ng-click="buttonDeleteClick()">
+<input type="button" value="Назад" ng-click="buttonBackClick()">
+<table class="table table-bordered">
+    <tr>
+        <th>id</th>
+        <th>Название</th>
+        <th>Полное название</th>
+    </tr>
+    <tr ng-repeat="equipment in equipments" ng-class="{'active': $index == selectedRow}"
+        ng-click="rowTableClick($index)" ng-dblclick="rowTableDoubleClick(equipment.id)">
+        <td>{{equipment.id}}</td>
+        <td>{{equipment.shortName}}</td>
+        <td>{{equipment.fullName}}</td>
+    </tr>
+</table>
+</body>
+</html>

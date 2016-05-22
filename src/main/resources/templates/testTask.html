@@ -24,6 +24,12 @@
             }).when('/measurement/:measurementId', {
                 templateUrl: 'measurementEdit.html',
                 controller: 'measurementEditController'
+            }).when('/equipment', {
+                templateUrl: 'equipmentList.html',
+                controller: 'equipmentListController'
+            }).when('/equipment/:equipmentId', {
+                templateUrl: 'equipmentEdit.html',
+                controller: 'equipmentEditController'
             })
         });
         testTask.run(function ($rootScope, $location, routeHistory) {
@@ -126,8 +132,6 @@
         });
 
 
-
-
         testTask.factory('measurementFactory', function ($http) {
             return {
                 getAll: function (callback) {
@@ -166,7 +170,7 @@
                 }
             };
         });
-        testTask.controller('measurementListController', function ($scope, $location, measurementFactory) {
+        testTask.controller('measurementListController', function ($scope, $location, measurementFactory, routeHistory) {
             measurementFactory.getAll(function (measurements) {
                 var data = measurements.data;
                 data.forEach(function (measurement, index, measurements) {
@@ -179,7 +183,12 @@
                 $scope.selectedRow = selectedRow;
             };
             $scope.rowTableDoubleClick = function (id) {
-                $location.path("/measurement/" + id);
+                var searchParams = $location.search();
+                if (angular.isDefined(searchParams.forSelect) && searchParams.forSelect) {
+                    routeHistory.back(id);
+                } else {
+                    $location.path("/measurement/" + id);
+                }
             };
             $scope.buttonCreateClick = function () {
                 $location.path("/measurement/0");
@@ -197,15 +206,18 @@
         });
         testTask.controller('measurementEditController', function ($scope, $routeParams, $location, measurementFactory, indicatorFactory) {
             measurementFactory.getById($routeParams.measurementId, function (measurement) {
-                var data = measurement.data;
-                data.date = moment(data.date).format("YYYY-MM-DDTHH:mm:ss");
+                var data;
+                if (measurement.data == "") {
+                    data = {};
+                } else {
+                    data = measurement.data;
+                    data.date = moment(data.date).format("YYYY-MM-DDTHH:mm:ss");
+                }
                 var searchParams = $location.search();
                 if (angular.isDefined(searchParams.selectedId)) {
                     var selectedId = searchParams.selectedId;
-//                    $location.search('selectedId', null);
                     indicatorFactory.getById(selectedId, function (indicator) {
-                        data.indicator = indicator.data
-
+                        data.indicator = indicator.data;
                     });
                 }
                 $scope.measurement = data;
@@ -228,8 +240,6 @@
                 $location.path("/measurement");
             };
         });
-
-
 
 
         testTask.factory('equipmentFactory', function ($http) {
@@ -296,13 +306,22 @@
                 $location.path("");
             };
         });
-        testTask.controller('equipmentEditController', function ($scope, $routeParams, $location, equipmentFactory) {
+        testTask.controller('equipmentEditController', function ($scope, $routeParams, $location, equipmentFactory, measurementFactory) {
             equipmentFactory.getById($routeParams.equipmentId, function (equipment) {
                 var data = equipment.data;
+                var searchParams = $location.search();
+                if (angular.isDefined(searchParams.selectedId)) {
+                    var selectedId = searchParams.selectedId;
+                    measurementFactory.getById(selectedId, function (measurement) {
+                        data.measurements.push(measurement.data);
+
+                    });
+                }
                 $scope.equipment = data;
             });
+            $scope.selectedRow = null;
             $scope.submit = function () {
-                var a = JSON.stringify($scope.measurement);
+                var a = JSON.stringify($scope.equipment);
                 if (angular.isUndefined($scope.equipment.id)) {
                     equipmentFactory.save(a);
                 } else {
@@ -310,8 +329,24 @@
                 }
             };
             $scope.buttonBackClick = function () {
-                $location.path("/measurement");
+                $location.path("/equipment");
             };
+            $scope.rowTableMeasurementClick = function (selectedRow) {
+                $scope.selectedRow = selectedRow;
+            };
+            $scope.rowTableMeasurementDoubleClick = function (id) {
+                $location.path("/measurement/" + id);
+            };
+            $scope.buttonTableMeasurementAddClick = function () {
+                $location.path("/measurement").search({forSelect: true});
+            };
+            $scope.buttonTableMeasurementDeleteClick = function () {
+                if ($scope.selectedRow != null)
+                    measurementFactory.delete($scope.equipment.measurements[$scope.selectedRow].id, function () {
+                        $scope.equipment.measurements.splice($scope.selectedRow, 1);
+                        $scope.selectedRow = null;
+                    })
+            }
         });
     </script>
 </head>
